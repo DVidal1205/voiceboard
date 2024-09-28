@@ -1,4 +1,4 @@
-import { audioRouter } from "~/server/api/routers/audio";
+import { mermaidRouter } from "~/server/api/routers/mermaid";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 
 /**
@@ -7,7 +7,7 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  audio: audioRouter,
+  mermaid: mermaidRouter,
 });
 
 // export type definition of API

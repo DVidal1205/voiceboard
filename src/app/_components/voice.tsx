@@ -3,14 +3,31 @@ import { useEffect, useRef, useState } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import { api } from "~/trpc/react";
 
 const Voice = () => {
   const [isClient, setIsClient] = useState(false);
   const [filteredTranscript, setFilteredTranscript] = useState("");
 
+  const [mermaidText, setMermaidText] = useState<string>("");
+  const [gemInput, setGemInput] = useState<string>("")
+  const {refetch: getMermaid, data} = api.mermaid.toMer.useQuery({str: gemInput}, {enabled: false});
+
+  const regen = (in2: string) => {setGemInput(in2);}
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    void getMermaid().then(res => {
+      let sp = res.data.split("\n");
+      sp.splice(0, 1);
+      sp.splice(sp.length-1, sp.length);
+      sp = sp.join("\n");
+      console.log(sp);
+      setMermaidText(sp);
+    });
+  }, [gemInput]);
 
   const {
     transcript,
@@ -26,6 +43,8 @@ const Voice = () => {
 
     const timer = setInterval(() => {
       if (transcript.length === lastTranscriptLength.current) {
+        console.log(filteredTranscript);
+        if (filteredTranscript != "") regen(filteredTranscript);
         setFilteredTranscript("");
         resetTranscript();
       } else {
@@ -97,6 +116,7 @@ const Voice = () => {
           Reset
         </button>
       </div>
+      <h1>{mermaidText}</h1>
       <div className="flex flex-grow items-center justify-center px-12">
         {filteredTranscript && (
           <p className="rounded-xl border-2 border-slate-900 bg-slate-200 p-4 text-center text-xl text-slate-800">
