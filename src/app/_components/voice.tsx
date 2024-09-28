@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
+import { api } from "~/trpc/react";
 
 import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
 import { type ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
@@ -23,9 +24,25 @@ const VoiceDraw = () => {
   const [mermaid, setMermaid] = useState("");
   const [exAPI, setExAPI] = useState<ExcalidrawImperativeAPI | null>(null);
 
+  const [mermaidText, setMermaidText] = useState<string>("");
+  const [gemInput, setGemInput] = useState<string>("")
+  const {refetch: getMermaid, data} = api.mermaid.toMer.useQuery({str: gemInput}, {enabled: false});
+
+  const regen = (in2: string) => {setGemInput(in2);}
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    void getMermaid().then(res => {
+      let sp = res.data.split("\n");
+      sp.splice(0, 1);
+      sp.splice(sp.length-1, sp.length);
+      sp = sp.join("\n");
+      console.log(sp);
+      setMermaidText(sp);
+    });
+  }, [gemInput]);
 
   const {
     transcript,
@@ -45,6 +62,8 @@ const VoiceDraw = () => {
 
     const timer = setInterval(() => {
       if (transcript.length === lastTranscriptLength.current) {
+        console.log(filteredTranscript);
+        if (filteredTranscript != "") regen(filteredTranscript);
         setFilteredTranscript("");
         resetTranscript();
       } else {
