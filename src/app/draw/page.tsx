@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import "regenerator-runtime/runtime";
 import Voice from "../_components/voice";
 
 const options = {
@@ -26,7 +27,7 @@ export default function Home() {
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c] text-white">
-      <Voice audio={} />
+      <Voice />
       <div>Gorp Norp</div>
     </main>
   );
