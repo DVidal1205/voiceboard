@@ -53,9 +53,9 @@ const VoiceDraw = () => {
 
   const lastTranscriptLength = useRef(transcript.length);
 
-  useEffect(()=>{
-    void SpeechRecognition.startListening({ continuous: true })
-  },[])
+  useEffect(() => {
+    void SpeechRecognition.startListening({ continuous: true });
+  }, []);
 
   useEffect(() => {
     if (!listening) return;
@@ -79,9 +79,8 @@ const VoiceDraw = () => {
       // Convert the transcript to an array of words instead of an array of letters
       // make all words lowercase and remove punctuation
 
-      if(transcript.includes("clear the board"))
-      {
-        setMermaid("graph TD")
+      if (transcript.includes("clear the board")) {
+        setMermaid("graph TD");
       }
 
       const words = transcript
@@ -160,7 +159,7 @@ const VoiceDraw = () => {
           }
         >
           <div
-            className={`p-2 ${listening ? "bg-red-800 rounded-full" : "bg-violet-800 rounded"}`}
+            className={`p-2 ${listening ? "rounded-full bg-red-800" : "rounded bg-violet-800"}`}
             onClick={() => setMermaid("graph TD")}
           >
             {listening ? <Mic /> : <MicOff />}
@@ -173,17 +172,14 @@ const VoiceDraw = () => {
           >
             <Eraser />
           </div>
-          <div className="ml-4  mt-2">&quot;clear the board&quot;</div>
+          <div className="ml-4 mt-2">&quot;clear the board&quot;</div>
         </div>
         <div
           className="flex cursor-pointer flex-row px-2 italic"
           onClick={() => test()}
         >
-          <div
-            className="p-2"
-            onClick={() => setMermaid("graph TD")}
-          >
-          <Pencil />
+          <div className="p-2" onClick={() => setMermaid("graph TD")}>
+            <Pencil />
           </div>
           <div className="ml-4 mt-2">&quot;let&apos;s draw&quot;</div>
         </div>
