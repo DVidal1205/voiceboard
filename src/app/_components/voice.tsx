@@ -4,9 +4,11 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 
+import { convertToExcalidrawElements } from "@excalidraw/excalidraw";
+import { type ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types";
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
-import { convertToExcalidrawElements } from "@excalidraw/excalidraw"
-import dynamic from 'next/dynamic'
+import { Eraser, Mic, MicOff, Pencil } from "lucide-react";
+import dynamic from "next/dynamic";
 
 const Excalidraw = dynamic(
   async () => (await import("@excalidraw/excalidraw")).Excalidraw,
@@ -19,6 +21,7 @@ const VoiceDraw = () => {
   const [isClient, setIsClient] = useState(false);
   const [filteredTranscript, setFilteredTranscript] = useState("");
   const [mermaid, setMermaid] = useState("");
+  const [exAPI, setExAPI] = useState<ExcalidrawImperativeAPI | null>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -32,6 +35,10 @@ const VoiceDraw = () => {
   } = useSpeechRecognition();
 
   const lastTranscriptLength = useRef(transcript.length);
+
+  useEffect(()=>{
+    void SpeechRecognition.startListening({ continuous: true })
+  },[])
 
   useEffect(() => {
     if (!listening) return;
@@ -52,6 +59,12 @@ const VoiceDraw = () => {
     if (transcript) {
       // Convert the transcript to an array of words instead of an array of letters
       // make all words lowercase and remove punctuation
+
+      if(transcript.includes("clear the board"))
+      {
+        setMermaid("graph TD")
+      }
+
       const words = transcript
         .split(" ")
         .map((word) => word.toLowerCase().replace(/[^a-zA-Z ]/g, ""));
@@ -76,6 +89,22 @@ const VoiceDraw = () => {
     }
   }, [transcript]);
 
+  useEffect(() => {
+    void convert();
+    console.log("testtest");
+  }, [mermaid]);
+
+  async function convert() {
+    if (exAPI) {
+      const { elements } = await parseMermaidToExcalidraw(mermaid);
+      // currently the elements returned from the parser are in a "skeleton" format
+      // which we need to convert to fully qualified excalidraw elements first
+      const excalidrawElements = convertToExcalidrawElements(elements);
+      exAPI.updateScene({ elements: excalidrawElements });
+      exAPI.scrollToContent(excalidrawElements);
+    }
+  }
+
   if (!isClient) {
     return null; // Render nothing on the server
   }
@@ -90,34 +119,67 @@ const VoiceDraw = () => {
     resetTranscript();
   }
 
+  function test() {
+    if (mermaid === "graph TD\n  A-->B") {
+      setMermaid("graph TD\n  B-->A");
+    } else {
+      setMermaid(
+        "graph LR\n  subgraph Full Adder\n    A[A] -->|A| Sum[Sum]\n    B[B] -->|B| Sum\n    Cin[Cin] -->|Cin| Sum\n    Sum --> Cout[Cout]\n    A -->|A| Carry[Carry]\n    B -->|B| Carry\n    Cin -->|Cin| Carry\n  end",
+      );
+    }
+  }
+
   return (
-    <div className="items h-full w-full flex-col items-center justify-between">
-      <div className="w-full p-12 text-center">
-        <p className="px-2 text-3xl font-bold">
-          Microphone: {listening ? "on" : "off"}
-        </p>
-        <button
-          className="px-2"
-          onClick={() => SpeechRecognition.startListening({ continuous: true })}
+    <div className="items between h-full w-full flex-col items-center">
+      <div className="flex w-full flex-row px-12 py-8 text-center">
+        <div
+          className="cursor-pointer px-2 text-3xl font-bold"
+          onClick={() =>
+            listening
+              ? reset()
+              : SpeechRecognition.startListening({ continuous: true })
+          }
         >
-          Start
-        </button>
-        <button className="px-2" onClick={() => void reset()}>
-          Stop
-        </button>
-        <button className="px-2" onClick={() => void reset()}>
-          Reset
-        </button>
+          <div
+            className={`p-2 ${listening ? "bg-red-800 rounded-full" : "bg-violet-800 rounded"}`}
+            onClick={() => setMermaid("graph TD")}
+          >
+            {listening ? <Mic /> : <MicOff />}
+          </div>
+        </div>
+        <div className="flex cursor-pointer flex-row px-2 italic">
+          <div
+            className="rounded bg-violet-800 p-2"
+            onClick={() => setMermaid("graph TD")}
+          >
+            <Eraser />
+          </div>
+          <div className="ml-4  mt-2">&quot;clear the board&quot;</div>
+        </div>
+        <div
+          className="flex cursor-pointer flex-row px-2 italic"
+          onClick={() => test()}
+        >
+          <div
+            className="p-2"
+            onClick={() => setMermaid("graph TD")}
+          >
+          <Pencil />
+          </div>
+          <div className="ml-4 mt-2">&quot;let&apos;s draw&quot;</div>
+        </div>
       </div>
-      <div className="w-[85vw] h-[85vh]">
-        <Excalidraw/>
+      <div className="px-12">
+        <div className="h-[70vh] w-full rounded-xl border-4">
+          <Excalidraw excalidrawAPI={(api) => setExAPI(api)} />
+        </div>
       </div>
-      <div className="flex flex-grow items-center justify-center px-12">
-        {filteredTranscript && (
+      <div className="flex flex-grow items-center justify-center px-12 pt-8">
+        {filteredTranscript ? (
           <p className="rounded-xl border-2 border-slate-900 bg-slate-200 p-4 text-center text-xl text-slate-800">
             {filteredTranscript}
           </p>
-        )}
+        ) : <div>Say </div>}
       </div>
     </div>
   );
