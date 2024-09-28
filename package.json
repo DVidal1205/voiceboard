@@ -17,6 +17,7 @@
     "@excalidraw/excalidraw": "^0.17.6",
     "@excalidraw/mermaid-to-excalidraw": "^1.1.0",
     "@google-cloud/speech": "^6.7.0",
+    "@google/generative-ai": "^0.20.0",
     "@libsql/client": "^0.9.0",
     "@picovoice/porcupine-react": "^3.0.3",
     "@picovoice/web-voice-processor": "^4.0.9",
