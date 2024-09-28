@@ -4,9 +4,21 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 
-const Voice = () => {
+import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
+import { convertToExcalidrawElements } from "@excalidraw/excalidraw"
+import dynamic from 'next/dynamic'
+
+const Excalidraw = dynamic(
+  async () => (await import("@excalidraw/excalidraw")).Excalidraw,
+  {
+    ssr: false,
+  },
+);
+
+const VoiceDraw = () => {
   const [isClient, setIsClient] = useState(false);
   const [filteredTranscript, setFilteredTranscript] = useState("");
+  const [mermaid, setMermaid] = useState("");
 
   useEffect(() => {
     setIsClient(true);
@@ -97,6 +109,9 @@ const Voice = () => {
           Reset
         </button>
       </div>
+      <div className="w-[85vw] h-[85vh]">
+        <Excalidraw/>
+      </div>
       <div className="flex flex-grow items-center justify-center px-12">
         {filteredTranscript && (
           <p className="rounded-xl border-2 border-slate-900 bg-slate-200 p-4 text-center text-xl text-slate-800">
@@ -108,4 +123,4 @@ const Voice = () => {
   );
 };
 
-export default Voice;
+export default VoiceDraw;
