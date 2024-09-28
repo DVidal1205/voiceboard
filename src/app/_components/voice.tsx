@@ -40,7 +40,7 @@ const VoiceDraw = () => {
       sp.splice(sp.length-1, sp.length);
       sp = sp.join("\n");
       console.log(sp);
-      setMermaidText(sp);
+      setMermaid(sp);
     });
   }, [gemInput]);
 
@@ -198,7 +198,7 @@ const VoiceDraw = () => {
           <p className="rounded-xl border-2 border-slate-900 bg-slate-200 p-4 text-center text-xl text-slate-800">
             {filteredTranscript}
           </p>
-        ) : <div>Say </div>}
+        ) : !listening ? <div>Listening is currently disabled.</div> : <div/>}
       </div>
     </div>
   );
