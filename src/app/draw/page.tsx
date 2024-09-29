@@ -1,7 +1,10 @@
 "use client";
 
 import "regenerator-runtime/runtime";
-import VoiceDraw from "../_components/voice";
+import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
+
+const VoiceDraw = dynamic(() => import('../_components/voice'), { ssr: false });
 
 export default function Home() {
   return (
