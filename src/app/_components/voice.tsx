@@ -35,7 +35,7 @@ const VoiceDraw = () => {
   const [dialogOpen, setDialogOpen] = useState<boolean>(true);
 
   const [gemInput, setGemInput] = useState<string>(
-    "Please generate a rectangle with text that says Hello World",
+    "Please generate a rectangle with text that says Voiceboard",
   );
   const {
     refetch: getMermaid,
@@ -55,12 +55,15 @@ const VoiceDraw = () => {
 
   useEffect(() => {
     void getMermaid().then((res) => {
+      if (!res.data) {
+        return;
+      }
       let sp = res.data.split("\n");
       sp.splice(0, 1);
       sp.splice(sp.length - 1, sp.length);
-      sp = sp.join("\n");
+      sp = [sp.join("\n")];
       console.log(sp);
-      setMermaid(sp);
+      setMermaid(sp.join("\n"));
     });
   }, [gemInput]);
 
@@ -79,6 +82,8 @@ const VoiceDraw = () => {
 
   useEffect(() => {
     if (!listening) return;
+
+    if (isLoading) return;
 
     if (transcript) {
       // Check if "clear the board" is mentioned
@@ -114,7 +119,7 @@ const VoiceDraw = () => {
           resetTranscript();
         }
       }
-    }, 1000); // 1 second of inactivity
+    }, 2000); // 1 second of inactivity
 
     // Update the length to keep track of changes
     lastTranscriptLength.current = transcript.length;
@@ -176,86 +181,95 @@ const VoiceDraw = () => {
 
   return (
     <div className="items between h-full w-full flex-col items-center">
-      <Dialog open={dialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">
-              Welcome to VoiceBoard
+              welcome to voiceboard
             </DialogTitle>
             <DialogDescription className="text-xl font-semibold">
-              Making whiteboarding and communicating ideas easier and accessible
-              to all.
+              making whiteboarding and communicating ideas easier and accessible
+              to all
             </DialogDescription>
           </DialogHeader>
           <div className="text-2xl">
-            Say{" "}
-            <span className="text-purple-700">
-              &quot;Let&apos;s Draw&quot;{" "}
-            </span>
+            say{" "}
+            <span className="font-bold text-lime-800">{'"let\'s draw"  '}</span>
             to get started...
           </div>
         </DialogContent>
       </Dialog>
-      <div className="flex w-full flex-row px-12 py-8 text-center">
-        <div
-          className="cursor-pointer px-2 text-3xl font-bold"
-          onClick={() =>
-            listening
-              ? reset()
-              : SpeechRecognition.startListening({ continuous: true })
-          }
-        >
+      <div className="grid grid-cols-2 text-black">
+        <div className="flex w-full flex-row px-12 py-4 text-center">
           <div
-            className={`relative p-2 ${listening ? "rounded-full bg-red-800" : "rounded bg-violet-800"}`}
-            onClick={() => setMermaid("graph TD")}
+            className="cursor-pointer px-2 text-3xl font-bold"
+            onClick={() =>
+              listening
+                ? reset()
+                : SpeechRecognition.startListening({ continuous: true })
+            }
           >
-            {listening ? (
-              <div>
-                <Mic />
-                <span className="absolute left-0 top-0 inline-flex h-full w-full animate-ping rounded-full bg-red-700 opacity-75"></span>
-              </div>
-            ) : (
-              <MicOff />
-            )}
-          </div>
-        </div>
-        <div className="flex cursor-pointer flex-row px-2 italic">
-          <div
-            className="rounded bg-violet-800 p-2"
-            onClick={() => setMermaid("graph TD")}
-          >
-            <Eraser />
-          </div>
-          <div className="ml-4 mt-2">&quot;clear the board&quot;</div>
-        </div>
-        <div
-          className="flex cursor-pointer flex-row px-2 italic"
-          onClick={() => test()}
-        >
-          <div className="p-2" onClick={() => setMermaid("graph TD")}>
-            <Pencil />
-          </div>
-          <div className="ml-4 mt-2">&quot;let&apos;s draw&quot;</div>
-        </div>
-        {isLoading && (
-          <div className="flex cursor-pointer flex-row px-2 italic">
-            <div className="p-2" onClick={() => setMermaid("graph TD")}>
-              <Loader2Icon className="animate-spin" />
+            <div
+              className={`relative p-2 transition duration-200 ease-in-out ${listening ? "rounded-full bg-red-800 text-white" : "rounded bg-yellow-200"}`}
+            >
+              {listening ? (
+                <div>
+                  <Mic />
+                  <span className="absolute left-0 top-0 inline-flex h-full w-full animate-ping rounded-full bg-red-700 opacity-75"></span>
+                </div>
+              ) : (
+                <MicOff />
+              )}
             </div>
-            <div className="ml-4 mt-2">loading...</div>
           </div>
-        )}
+          <div className="flex cursor-pointer flex-row px-2 italic">
+            <div
+              className="rounded bg-yellow-200 p-2"
+              onClick={() => setMermaid("graph TD")}
+            >
+              <Eraser />
+            </div>
+            <div className="ml-4 mt-2">&quot;clear the board&quot;</div>
+          </div>
+          <div className="flex flex-row px-2 italic">
+            <div className="p-2">
+              <Pencil />
+            </div>
+            <div className="ml-4 mt-2">&quot;let&apos;s draw&quot;</div>
+          </div>
+        </div>
+        <div className="mr-4 mt-2 flex w-full flex-row justify-end px-12 py-4 text-center font-bold">
+          voiceboard
+        </div>
       </div>
       <div className="px-12">
-        <div className="relative h-[85vh] w-full rounded-xl border-4">
+        <div className="relative h-[88vh] w-full rounded-xl border-4 border-white bg-white shadow-lg">
           <Excalidraw excalidrawAPI={(api) => setExAPI(api)} />
           <div className="flex flex-grow items-center justify-center px-12 pt-8 text-black">
-            {filteredTranscript ? (
-              <p className="animate-grow absolute bottom-4 z-10 rounded-xl bg-zinc-900 p-4 text-center text-xl text-white opacity-40">
-                <div className="opacity-100">{filteredTranscript}</div>
+            {filteredTranscript || !listening ? (
+              <p className="animate-grow absolute bottom-4 z-20 rounded-xl bg-zinc-900 p-4 text-center text-xl text-white opacity-40">
+                <div className="opacity-100">
+                  {filteredTranscript ? (
+                    filteredTranscript
+                  ) : !listening ? (
+                    <MicOff />
+                  ) : (
+                    ""
+                  )}
+                </div>
               </p>
             ) : (
               <div />
+            )}
+            {isLoading && (
+              <div className="absolute bottom-1/2 z-20 flex flex-row rounded-xl bg-zinc-900 px-2 italic opacity-40">
+                <div className="p-2">
+                  <Loader2Icon className="animate-spin stroke-white opacity-100" />
+                </div>
+                <div className="ml-2 mt-2 text-white opacity-100">
+                  loading...
+                </div>
+              </div>
             )}
           </div>
         </div>
