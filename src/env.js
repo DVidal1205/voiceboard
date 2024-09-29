@@ -8,7 +8,6 @@ export const env = createEnv({
    */
   server: {
     GEMINI_API_KEY: z.string(),
-    DATABASE_URL: z.string().url(),
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
@@ -29,7 +28,6 @@ export const env = createEnv({
    */
   runtimeEnv: {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-    DATABASE_URL: process.env.DATABASE_URL,
     NODE_ENV: process.env.NODE_ENV,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
