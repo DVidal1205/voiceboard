@@ -10,6 +10,7 @@ import { type ExcalidrawImperativeAPI } from "@excalidraw/excalidraw/types/types
 import { parseMermaidToExcalidraw } from "@excalidraw/mermaid-to-excalidraw";
 import { Eraser, Mic, MicOff, Pencil } from "lucide-react";
 import dynamic from "next/dynamic";
+import { toast } from "~/hooks/use-toast";
 
 const Excalidraw = dynamic(
   async () => (await import("@excalidraw/excalidraw")).Excalidraw,
@@ -24,20 +25,26 @@ const VoiceDraw = () => {
   const [mermaid, setMermaid] = useState("");
   const [exAPI, setExAPI] = useState<ExcalidrawImperativeAPI | null>(null);
 
-  const [mermaidText, setMermaidText] = useState<string>("");
-  const [gemInput, setGemInput] = useState<string>("")
-  const {refetch: getMermaid, data} = api.mermaid.toMer.useQuery({str: gemInput}, {enabled: false});
+  const [gemInput, setGemInput] = useState<string>(
+    "Please generate a rectangle with text that says Hello World",
+  );
+  const { refetch: getMermaid, data } = api.mermaid.toMer.useQuery(
+    { str: gemInput, current: mermaid },
+    { enabled: false },
+  );
 
-  const regen = (in2: string) => {setGemInput(in2);}
+  const regen = (in2: string) => {
+    setGemInput(in2);
+  };
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   useEffect(() => {
-    void getMermaid().then(res => {
+    void getMermaid().then((res) => {
       let sp = res.data.split("\n");
       sp.splice(0, 1);
-      sp.splice(sp.length-1, sp.length);
+      sp.splice(sp.length - 1, sp.length);
       sp = sp.join("\n");
       console.log(sp);
       setMermaid(sp);
@@ -60,66 +67,72 @@ const VoiceDraw = () => {
   useEffect(() => {
     if (!listening) return;
 
-    const timer = setInterval(() => {
-      if (transcript.length === lastTranscriptLength.current) {
-        console.log(filteredTranscript);
-        if (filteredTranscript != "") regen(filteredTranscript);
-        setFilteredTranscript("");
-        resetTranscript();
-      } else {
-        lastTranscriptLength.current = transcript.length;
-      }
-    }, 1000); // 1 seconds
-
-    return () => clearInterval(timer);
-  }, [transcript, listening, resetTranscript]);
-
-  useEffect(() => {
     if (transcript) {
-      // Convert the transcript to an array of words instead of an array of letters
-      // make all words lowercase and remove punctuation
-
+      // Check if "clear the board" is mentioned
       if (transcript.includes("clear the board")) {
         setMermaid("graph TD");
       }
 
+      // Convert the transcript to an array of words (lowercase and without punctuation)
       const words = transcript
         .split(" ")
         .map((word) => word.toLowerCase().replace(/[^a-zA-Z ]/g, ""));
       console.log(words);
 
-      // Check if the words "lets draw" are in the words without punctuation, next to each other
-      const wordsPresent = words.includes("lets") && words.includes("draw");
-      if (!wordsPresent) return;
-      // grab the index of the LAST occurrence of "lets" and the LAST occurrence of "draw"
-      const letsIndex = words.lastIndexOf("lets");
-      const drawIndex = words.lastIndexOf("draw");
-      const letsDraw = letsIndex + 1 === drawIndex;
-
-      // Only set the filtered transcript if the first two words are "lets draw"
-      if (letsDraw) {
-        // Add all of the words after "lets draw" to the filtered transcript
-        const filteredTranscript = words
-          .slice(words.lastIndexOf("lets"))
-          .join(" ");
-        setFilteredTranscript(filteredTranscript);
+      // Check if "lets draw" appears in sequence in the words array
+      for (let i = 0; i < words.length - 1; i++) {
+        if (words[i] === "lets" && words[i + 1] === "draw") {
+          // Filter the transcript from the point of "lets" (inclusive) and store it
+          const filteredTranscript = words.slice(i).join(" ");
+          setFilteredTranscript(filteredTranscript);
+          break; // Stop once the first occurrence is found
+        }
       }
     }
-  }, [transcript]);
+
+    const timeoutId = setTimeout(() => {
+      // If no new transcript is received for 1 second, process the filteredTranscript
+      if (transcript.length === lastTranscriptLength.current) {
+        console.log("FILTERED: ", filteredTranscript);
+        if (filteredTranscript !== "") {
+          regen(filteredTranscript);
+          setFilteredTranscript("");
+          resetTranscript();
+        }
+      }
+    }, 1000); // 1 second of inactivity
+
+    // Update the length to keep track of changes
+    lastTranscriptLength.current = transcript.length;
+
+    // Cleanup timeout on every update
+    return () => clearTimeout(timeoutId);
+  }, [transcript, listening, resetTranscript, filteredTranscript]);
 
   useEffect(() => {
     void convert();
-    console.log("testtest");
   }, [mermaid]);
 
   async function convert() {
     if (exAPI) {
-      const { elements } = await parseMermaidToExcalidraw(mermaid);
-      // currently the elements returned from the parser are in a "skeleton" format
-      // which we need to convert to fully qualified excalidraw elements first
-      const excalidrawElements = convertToExcalidrawElements(elements);
-      exAPI.updateScene({ elements: excalidrawElements });
-      exAPI.scrollToContent(excalidrawElements);
+      try {
+        const { elements } = await parseMermaidToExcalidraw(mermaid);
+
+        if (!elements) {
+          return;
+        }
+
+        // currently the elements returned from the parser are in a "skeleton" format
+        // which we need to convert to fully qualified excalidraw elements first
+        const excalidrawElements = convertToExcalidrawElements(elements);
+        exAPI.updateScene({ elements: excalidrawElements });
+        exAPI.scrollToContent(excalidrawElements, { fitToViewport: true });
+      } catch (err) {
+        toast({
+          title: "Error",
+          description: "Please try again later",
+        });
+      }
     }
   }
 
@@ -191,10 +204,14 @@ const VoiceDraw = () => {
       </div>
       <div className="flex flex-grow items-center justify-center px-12 pt-8">
         {filteredTranscript ? (
-          <p className="rounded-xl border-2 border-slate-900 bg-slate-200 p-4 text-center text-xl text-slate-800">
+          <p className="animate-grow rounded-xl border-2 border-slate-900 bg-slate-200 p-4 text-center text-xl text-slate-800">
             {filteredTranscript}
           </p>
-        ) : !listening ? <div>Listening is currently disabled.</div> : <div/>}
+        ) : !listening ? (
+          <div>Listening is currently disabled.</div>
+        ) : (
+          <div />
+        )}
       </div>
     </div>
   );

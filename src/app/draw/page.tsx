@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react";
 import "regenerator-runtime/runtime";
 import VoiceDraw from "../_components/voice";
 

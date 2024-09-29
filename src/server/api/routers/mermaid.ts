@@ -1,20 +1,29 @@
-import speech, { protos } from "@google-cloud/speech";
 import { z } from "zod";
 import { env } from "~/env";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
-const { GoogleGenerativeAI } = require("@google/generative-ai");
-const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+import { GoogleGenerativeAI } from "@google/generative-ai";
+const genAI: GoogleGenerativeAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 export const mermaidRouter = createTRPCRouter({
   toMer: publicProcedure
-    .input(z.object({ str: z.string() }))
+    .input(z.object({ str: z.string(), current: z.string() }))
     .query(async ({ input }) => {
-      const prompt = "Moving forward please respond to prompts with the mermaid diagram language! DO NOT POST ANYTHING OTHER THAN THE MERMAID CODE! "+input.str;
+      console.log("INPUT: ", input.str);
+      console.log("CURRENT: ", input.current);
+      let prompt =
+        "Your job is to create detailed diagrams using the Mermaid syntax for various use cases described by the current user.\n" +
+        "If there is already Mermaid syntax in the prompt, you must attempt to modify the diagram as described by the user rather than starting from scratch.\n" +
+        "YOU MUST RESPOND IN MERMAID SYNTAX. RESPONSES THAT ARE NOT A MERMAID CODEBLOCK WILL BE INVALID.\n" +
+        "The current prompt is: " +
+        input.str;
+
+      if (input.current) {
+        prompt += "\nThe current diagram is: " + input.current;
+      }
 
       const result = await model.generateContent([prompt]);
-      console.log(result.response.text());
       return result.response.text();
     }),
 });
