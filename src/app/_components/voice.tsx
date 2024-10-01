@@ -199,10 +199,13 @@ const VoiceDraw = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <div className="grid grid-cols-2 text-black">
-        <div className="flex w-full flex-row px-12 py-4 text-center">
+      <div className="mr-4 mt-2 w-full flex-row justify-end py-2 text-center font-bold text-black lg:hidden">
+        voiceboard
+      </div>
+      <div className="grid justify-center text-black lg:grid-cols-2">
+        <div className="flex w-full flex-row px-4 py-2 text-center md:px-12 md:py-4">
           <div
-            className="cursor-pointer px-2 text-3xl font-bold"
+            className="cursor-pointer text-3xl font-bold md:px-2"
             onClick={() =>
               listening
                 ? reset()
@@ -210,7 +213,7 @@ const VoiceDraw = () => {
             }
           >
             <div
-              className={`relative p-2 transition duration-200 ease-in-out ${listening ? "rounded-full bg-red-800 text-white" : "rounded bg-yellow-200"}`}
+              className={`relative mr-2 p-2 transition duration-200 ease-in-out ${listening ? "rounded-full bg-red-800 text-white" : "rounded bg-yellow-200"}`}
             >
               {listening ? (
                 <div>
@@ -222,32 +225,36 @@ const VoiceDraw = () => {
               )}
             </div>
           </div>
-          <div className="flex cursor-pointer flex-row px-2 italic">
+          <div className="flex cursor-pointer flex-row px-1 italic md:px-2">
             <div
               className="rounded bg-yellow-200 p-2"
               onClick={() => setMermaid("graph TD")}
             >
               <Eraser />
             </div>
-            <div className="ml-4 mt-2">&quot;clear the board&quot;</div>
+            <div className="ml-4 mt-2 text-sm md:text-base">
+              &quot;clear the board&quot;
+            </div>
           </div>
-          <div className="flex flex-row px-2 italic">
+          <div className="flex flex-row px-1 italic md:px-2">
             <div className="p-2">
               <Pencil />
             </div>
-            <div className="ml-4 mt-2">&quot;let&apos;s draw&quot;</div>
+            <div className="ml-4 mt-2 text-sm md:text-base">
+              &quot;let&apos;s draw&quot;
+            </div>
           </div>
         </div>
-        <div className="mr-4 mt-2 flex w-full flex-row justify-end px-12 py-4 text-center font-bold">
+        <div className="mr-4 mt-2 hidden w-full flex-row justify-end px-12 py-4 text-center font-bold lg:flex">
           voiceboard
         </div>
       </div>
-      <div className="px-12">
+      <div className="px-4 md:px-12">
         <div className="relative h-[88vh] w-full rounded-xl border-4 border-white bg-white shadow-lg">
           <Excalidraw excalidrawAPI={(api) => setExAPI(api)} />
           <div className="flex flex-grow items-center justify-center px-12 pt-8 text-black">
             {filteredTranscript || !listening ? (
-              <p className="animate-grow absolute bottom-4 z-20 rounded-xl bg-zinc-900 p-4 text-center text-xl text-white opacity-40">
+              <p className="animate-grow absolute bottom-20 z-20 rounded-xl bg-zinc-900 p-4 text-center text-xl text-white opacity-40 md:bottom-4">
                 <div className="opacity-100">
                   {filteredTranscript ? (
                     filteredTranscript
