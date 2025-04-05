@@ -151,6 +151,7 @@ const VoiceDraw = () => {
           title: "Error",
           description: "Please try again later",
         });
+        setMermaid("graph TD")
       }
     }
   }

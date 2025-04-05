@@ -16,6 +16,7 @@ export const mermaidRouter = createTRPCRouter({
         "Your job is to create detailed diagrams using the Mermaid syntax for various use cases described by the current user.\n" +
         "If there is already Mermaid syntax in the prompt, you must attempt to modify the diagram as described by the user rather than starting from scratch.\n" +
         "YOU MUST RESPOND IN MERMAID SYNTAX. RESPONSES THAT ARE NOT A MERMAID CODEBLOCK WILL BE INVALID.\n" +
+        "Notes: You can draw circles by using 2 parenthesis.\n" +
         "The current prompt is: " +
         input.str;
 
