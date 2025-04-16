@@ -6,46 +6,39 @@ import "regenerator-runtime/runtime";
 import { Toaster } from "~/components/ui/toaster";
 import { TRPCReactProvider } from "~/trpc/react";
 
+export const metadata = {
+  title: "VoiceBoard - Accessible Diagramming for All",
+  description: "Voice your ideas into diagrams in an interactive and intuitive way.",
+  keywords: ["Voiceboard", "Voice", "Accessibility", "Ideas", "Collaboration"],
+  openGraph: {
+    title: "VoiceBoard - Accessible Diagramming for All",
+    description: "Voice your ideas into diagrams in an interactive and intuitive way.",
+    url: "https://voiceboard.app",
+    type: "website",
+    images: [
+      {
+        url: "/logo.png",
+        alt: "VoiceBoard Logo",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "VoiceBoard - Accessible Diagramming for All",
+    description: "Voice your ideas into diagrams in an interactive and intuitive way.",
+    images: ["/logo.png"],
+  },
+  viewport: "width=device-width, initial-scale=1",
+  icons: {
+    icon: "/favicon.ico",
+  },
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${GeistSans.variable}`}>
-      <head>
-        <title>VoiceBoard - Accessible Diagramming for All</title>
-        <meta
-          name="description"
-          content="Voice your ideas into diagrams in an interactive and intuitive way."
-        />
-        <meta
-          name="keywords"
-          content="Voiceboard, Voice, Accessibility, Ideas, Collaboration"
-        />
-        <meta name="theme-color" content="#ceedab" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta
-          property="og:title"
-          content="VoiceBoard - Accessible Diagramming for All"
-        />
-        <meta
-          property="og:description"
-          content="Voice your ideas into diagrams in an interactive and intuitive way."
-        />
-        <meta property="og:image" content="/logo.png" />
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://your-domain.com" />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta
-          name="twitter:title"
-          content="VoiceBoard - Accessible Diagramming for All"
-        />
-        <meta
-          name="twitter:description"
-          content="Voice your ideas into diagrams in an interactive and intuitive way."
-        />
-        <meta name="twitter:image" content="/logo.png" />
-        <link rel="icon" href="/favicon.ico" />
-      </head>
       <body>
         <Script
           async
