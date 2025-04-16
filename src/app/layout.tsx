@@ -17,7 +17,7 @@ export const metadata = {
     type: "website",
     images: [
       {
-        url: "/logo.png",
+        url: "https://voiceboard.app/logo.png",
         alt: "VoiceBoard Logo",
       },
     ],
@@ -26,11 +26,11 @@ export const metadata = {
     card: "summary_large_image",
     title: "VoiceBoard - Accessible Diagramming for All",
     description: "Voice your ideas into diagrams in an interactive and intuitive way.",
-    images: ["/logo.png"],
+    images: ["https://voiceboard.app/logo.png"],
   },
   viewport: "width=device-width, initial-scale=1",
   icons: {
-    icon: "/favicon.ico",
+    icon: "https://voiceboard.app/favicon.ico",
   },
 };
 
