@@ -33,6 +33,11 @@ const VoiceDraw = () => {
   const [mermaid, setMermaid] = useState("");
   const [exAPI, setExAPI] = useState<ExcalidrawImperativeAPI | null>(null);
   const [dialogOpen, setDialogOpen] = useState<boolean>(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>(
+    undefined,
+  );
+  const [shouldRetry, setShouldRetry] = useState(false);
 
   const [gemInput, setGemInput] = useState<string>(
     "Please generate a rectangle with text that says Voiceboard",
@@ -42,12 +47,19 @@ const VoiceDraw = () => {
     data,
     isLoading,
   } = api.mermaid.toMer.useQuery(
-    { str: gemInput, current: mermaid },
+    { str: gemInput, current: mermaid, error: errorMessage },
     { enabled: false },
   );
 
-  const regen = (in2: string) => {
+  const regen = (in2: string, errorMsg?: string) => {
     setGemInput(in2);
+    if (errorMsg) {
+      setErrorMessage(errorMsg);
+      setShouldRetry(true);
+    } else {
+      setErrorMessage(undefined);
+      setShouldRetry(false);
+    }
   };
   useEffect(() => {
     setIsClient(true);
@@ -64,8 +76,29 @@ const VoiceDraw = () => {
       sp = [sp.join("\n")];
       console.log(sp);
       setMermaid(sp.join("\n"));
+      setRetryCount(0); // Reset retry count on successful generation
+      setErrorMessage(undefined); // Clear error message on successful generation
+      setShouldRetry(false); // Clear retry flag
     });
   }, [gemInput]);
+
+  // Separate useEffect for handling retries with error messages
+  useEffect(() => {
+    if (shouldRetry && errorMessage) {
+      void getMermaid().then((res) => {
+        if (!res.data) {
+          return;
+        }
+        let sp = res.data.split("\n");
+        sp.splice(0, 1);
+        sp.splice(sp.length - 1, sp.length);
+        sp = [sp.join("\n")];
+        console.log("Retry result:", sp);
+        setMermaid(sp.join("\n"));
+        setShouldRetry(false); // Clear retry flag after processing
+      });
+    }
+  }, [shouldRetry, errorMessage]);
 
   const {
     transcript,
@@ -129,10 +162,10 @@ const VoiceDraw = () => {
   }, [transcript, listening, resetTranscript, filteredTranscript]);
 
   useEffect(() => {
-    void convert();
+    void convert(mermaid);
   }, [mermaid]);
 
-  async function convert() {
+  async function convert(mermaid: string) {
     if (exAPI) {
       try {
         const { elements } = await parseMermaidToExcalidraw(mermaid);
@@ -146,12 +179,43 @@ const VoiceDraw = () => {
         const excalidrawElements = convertToExcalidrawElements(elements);
         exAPI.updateScene({ elements: excalidrawElements });
         exAPI.scrollToContent(excalidrawElements, { fitToViewport: true });
+
+        // Reset all retry-related state on successful conversion
+        setRetryCount(0);
+        setErrorMessage(undefined);
+        setShouldRetry(false);
       } catch (err) {
-        toast({
-          title: "Error",
-          description: "Please try again later",
-        });
-        setMermaid("graph TD")
+        console.error("Error converting Mermaid to Excalidraw:", err);
+
+        if (retryCount < 5) {
+          const errorMessage =
+            err instanceof Error ? err.message : "Unknown parsing error";
+          setRetryCount((prev) => prev + 1);
+
+          toast({
+            title: "Error",
+            description: `Retrying to convert Mermaid to Excalidraw... (Attempt ${retryCount + 1}/5)`,
+          });
+
+          console.error(
+            `Retrying with error aware Mermaid graph generation... (Attempt ${retryCount + 1}/5)`,
+          );
+
+          // Retry with error-aware Mermaid graph generation
+          regen(gemInput, errorMessage);
+        } else {
+          toast({
+            title: "Error",
+            description: "Maximum retry attempts reached. Clearing the board.",
+          });
+          console.error(
+            "Maximum retry attempts reached. Resetting to empty graph.",
+          );
+          setMermaid("graph TD");
+          setRetryCount(0);
+          setErrorMessage(undefined);
+          setShouldRetry(false);
+        }
       }
     }
   }
